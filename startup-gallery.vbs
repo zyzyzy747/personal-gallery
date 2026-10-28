@@ -19,10 +19,10 @@ Dim wmi, procs, p
 Set sh = CreateObject("WScript.Shell")
 q = Chr(34)
 base = "D:\work\workbuddy\2026-10-25-19-09-03"
-py = "%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+py = "C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 app = base & "\app"
 cf = base & "\tools\cloudflared.exe"
-cfg = "%USERPROFILE%\.cloudflared\config.yml"
+cfg = "C:\Users\Administrator\.cloudflared\config.yml"
 
 If Not CreateObject("Scripting.FileSystemObject").FileExists(py) Then
   WScript.Quit 1

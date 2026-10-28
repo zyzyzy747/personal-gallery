@@ -79,7 +79,11 @@
 
   var SS = { tagDim: 'wg.tagDim', tagScroll: 'wg.tagScroll', filterHash: 'wg.filterHash' };
 
-  var RAW_ROOT = 'E:\\download\\Telegram\\';
+  /* 原图路径前缀。整理后库根是 E:\Download\01-图库\（见 app/paths.py）；
+     旧前缀保留一份，是为了兼容「还没重启的旧服务进程」——它启动时把
+     RAW_ROOTS 读进了内存，仍是 E:\download\Telegram。两个前缀都命中不了
+     时按绝对路径直接发，服务端会拒绝，属于应当暴露的配置错误。 */
+  var RAW_ROOTS = ['E:\\Download\\01-图库\\', 'E:\\download\\Telegram\\'];
 
   /* ==================================================================
    * 1. 工具
@@ -156,11 +160,13 @@
     return s || set.raw || '写真';
   }
 
-  /** 原图 URL：把 E:\download\Telegram\ 之后的相对路径做逐段编码 */
+  /** 原图 URL：把库根之后的相对路径做逐段编码 */
   function rawUrl(setPath, filename) {
     var rel = setPath || '';
-    var i = rel.indexOf(RAW_ROOT);
-    if (i >= 0) rel = rel.slice(i + RAW_ROOT.length);
+    for (var k = 0; k < RAW_ROOTS.length; k++) {
+      var i = rel.indexOf(RAW_ROOTS[k]);
+      if (i >= 0) { rel = rel.slice(i + RAW_ROOTS[k].length); break; }
+    }
     rel = rel.replace(/\\/g, '/');
     var segs = rel.split('/').map(encodeURIComponent);
     if (filename) segs.push(encodeURIComponent(filename));
@@ -592,16 +598,24 @@
       (function (book) {
         row.addEventListener('click', function (e) {
           e.preventDefault();
+          /* 电子书格式分流：只有 txt / epub 能在阅读器里读，
+             mobi / chm / pdf 这类直接走下载，别让读者对着乱码发呆。 */
+          if (!canReadBook(book)) { window.location.href = row.href; return; }
           openReader(book);
         });
       })(n);
       // 悬停提示：书名 / 分类 / 字数 / 体积。用 \\n 拼接在 JS 里是换行，
       // 注意这里是真实的反斜杠+n，不能是字面换行（会导致语法错误）
-      row.title = n.t + '\n分类：' + n.c + '\n约 ' + fmtWords(n.w) + ' · ' + fmtMB(n.s);
+      row.title = n.t + '\n分类：' + n.c
+        + (n.w ? '\n约 ' + fmtWords(n.w) : '') + ' · ' + fmtMB(n.s)
+        + (n.f && n.f !== 'txt' ? '\n格式：' + n.f.toUpperCase() : '');
       row.appendChild(el('span', 'novel-title', n.t));
       var meta = el('span', 'novel-meta');
       meta.appendChild(el('span', 'novel-tag', n.c));
-      meta.appendChild(el('span', 'novel-size', fmtWords(n.w)));
+      if (n.f && n.f !== 'txt') {
+        meta.appendChild(el('span', 'novel-tag', n.f.toUpperCase()));
+      }
+      meta.appendChild(el('span', 'novel-size', n.w ? fmtWords(n.w) : '—'));
       meta.appendChild(el('span', 'novel-size', fmtMB(n.s)));
       row.appendChild(meta);
       frag.appendChild(row);
@@ -625,7 +639,28 @@
   var reader = { path: '', title: '', text: '', page: 0, perPage: 2200, size: 17 };
   var READER_SIZES = [15, 16, 17, 18, 20, 22];
 
+  /* 阅读器能直接打开的格式（txt 与 epub 都由 /novel-text/ 转成纯文本）。
+     mobi / azw3 / chm / pdf 只入库可下载 —— 没有通用纯文本解包方案。 */
+  var READABLE_FMT = { txt: 1, epub: 1 };
+  function canReadBook(n) { return !n.f || READABLE_FMT[n.f] === 1; }
+
   function openReader(n) {
+    var dlHref = 'novel/' + n.p.split('/').map(encodeURIComponent).join('/');
+    if (!canReadBook(n)) {
+      reader.path = n.p;
+      reader.title = n.t;
+      reader.text = '';
+      reader.page = 0;
+      $('#reader-title').textContent = n.t;
+      $('#reader-body').textContent =
+        '这是 ' + String(n.f || '').toUpperCase() + ' 格式，阅读器不支持在线打开。\n\n'
+        + '点右下角「下载原文」取回原文件，用本机阅读器打开。';
+      $('#reader-page').textContent = '—';
+      $('#reader-download').href = dlHref;
+      state.view = 'reader';
+      switchView('reader');
+      return;
+    }
     var wantPath = n.p;        // 本次目标，用于识别「过期响应」
     reader.path = n.p;
     reader.title = n.t;

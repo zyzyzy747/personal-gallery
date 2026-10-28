@@ -42,9 +42,12 @@ if not TOKEN:
     TOKEN = secrets.token_urlsafe(9)
 LAN_OPEN = '--lan' in FLAGS
 
-# 允许前端直接读原始大图（磁盘真实路径），通过 /raw/ 路由
-# 与 build.py 用同一个环境变量；默认值按自己机器改
-RAW_ROOTS = [os.environ.get('GALLERY_ROOT') or r'E:\download\Telegram']
+# 库根的唯一声明处（整理后是 E:\Download\01-图库 与 02-小说）
+sys.path.insert(0, ROOT)
+import paths
+
+# 允许前端直接读原始大图（E 盘真实路径），通过 /raw/ 路由
+RAW_ROOTS = [paths.MEDIA_ROOT]
 
 # 小说来源（可能多个根）由 novel_roots 统一声明，build.py 与本服务共用一份，
 # 否则会出现「索引里列着这本书，点开却 404」。
@@ -95,6 +98,8 @@ def read_novel_text(fp, limit=16 * 1024 * 1024):
         return raw.decode('utf-8', errors='replace')
 
     if os.path.isfile(fp):
+        if fp.lower().endswith('.epub'):
+            return read_epub_text(fp, limit, decode)
         with open(fp, 'rb') as f:
             return decode(f.read(limit))
 
@@ -118,6 +123,73 @@ def read_novel_text(fp, limit=16 * 1024 * 1024):
             title = os.path.splitext(name)[0]
             parts.append('\n\n【%s】\n\n%s' % (title, chunk))
     return ''.join(parts)
+
+
+def read_epub_text(fp, limit, decode):
+    """epub → 纯文本。
+
+    epub 就是个 zip：META-INF/container.xml 指向 opf，opf 的 <spine> 给出
+    xhtml 的阅读顺序。这里只按 spine 拼正文，图片和 CSS 丢掉。
+    解析全部走正则，不引第三方库 —— 图库只装了 numpy + pillow。
+
+    为什么在服务端做而不预转 txt：546 本电子书里 epub 只占一半，
+    预转会多出一份 3~4 GB 的副本，而在线阅读本来就只是「看一眼」。
+    """
+    import zipfile
+    import re as _re
+    from html import unescape as _unescape
+
+    try:
+        z = zipfile.ZipFile(fp)
+    except Exception:
+        return ''
+
+    parts, total = [], 0
+    with z:
+        names = set(z.namelist())
+        order = []
+        try:
+            cont = z.read('META-INF/container.xml').decode('utf-8', 'replace')
+        except KeyError:
+            cont = ''
+        m = _re.search(r'rootfile[^>]*full-path=["\']([^"\']+)', cont)
+        opf = m.group(1) if m else ''
+        if opf and opf in names:
+            raw = z.read(opf).decode('utf-8', 'replace')
+            base = opf.rsplit('/', 1)[0] + '/' if '/' in opf else ''
+            ids = {}
+            for tag in _re.findall(r'<item\b[^>]*>', raw):
+                mi = _re.search(r'id=["\']([^"\']+)', tag)
+                mh = _re.search(r'href=["\']([^"\']+)', tag)
+                if mi and mh:
+                    ids[mi.group(1)] = base + mh.group(1)
+            for ref in _re.findall(r'<itemref\b[^>]*idref=["\']([^"\']+)', raw):
+                h = ids.get(ref)
+                if h and h in names:
+                    order.append(h)
+        if not order:
+            order = sorted(n for n in names
+                           if n.lower().endswith(('.xhtml', '.html', '.htm')))
+        for name in order:
+            try:
+                doc = decode(z.read(name))
+            except (KeyError, OSError):
+                continue
+            doc = _re.sub(r'(?is)<(script|style)\b.*?</\1>', ' ', doc)
+            doc = _re.sub(r'(?i)<br\s*/?>', '\n', doc)
+            doc = _re.sub(r'(?i)</(p|div|h[1-6]|li|tr|section)>', '\n', doc)
+            text = _re.sub(r'<[^>]+>', '', doc)
+            text = _unescape(text)
+            text = _re.sub(r'[ \t]+\n', '\n', text)
+            text = _re.sub(r'\n{3,}', '\n\n', text).strip()
+            if not text:
+                continue
+            total += len(text)
+            parts.append(text)
+            if total > limit:
+                parts.append('（内容过长，已截断）')
+                break
+    return '\n\n'.join(parts)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -291,6 +363,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime',
         '.mkv': 'video/x-matroska', '.m4v': 'video/mp4',
         '.txt': 'text/plain; charset=utf-8',
+        # 电子书：epub 在阅读器里在线读，其余只下载
+        '.epub': 'application/epub+zip', '.mobi': 'application/x-mobipocket-ebook',
+        '.azw3': 'application/vnd.amazon.ebook', '.chm': 'application/vnd.ms-htmlhelp',
+        '.pdf': 'application/pdf', '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     }
 
     def send_file(self, fp):

@@ -15,9 +15,7 @@
     assets/shotdates.json     每套图的拍摄日期（众数）
 
 用法：
-    python build.py
-
-依赖：numpy、Pillow（缩略图与主色提取用）
+    C:\\Users\\Administrator\\.workbuddy\\binaries\\python\\versions\\3.13.12\\python.exe build.py
 """
 import os, re, sys, json, time, argparse, collections, importlib.util
 import concurrent.futures as cf
@@ -25,9 +23,11 @@ import concurrent.futures as cf
 import numpy as np
 from PIL import Image
 
-# 素材根目录：按自己机器的实际位置改，或用环境变量 GALLERY_ROOT 覆盖
-ROOT = os.environ.get('GALLERY_ROOT') or r'E:\download\Telegram'
 BASE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE)
+import paths  # noqa: E402  库根的唯一声明处（整理后是 E:\Download\01-图库）
+
+ROOT = paths.MEDIA_ROOT
 ASSETS = os.path.join(BASE, 'assets')
 IMG_EXT = ('.jpg', '.jpeg', '.png', '.webp')
 # 视频：不生成缩略图（本机没有 ffmpeg 抽帧），前端用 <video> 首帧当封面，
@@ -336,7 +336,15 @@ def rescue_inline_tags(sets, lex=None):
 sys.path.insert(0, BASE)
 import novel_roots
 
-NOVEL_EXT = ('.txt',)
+NOVEL_TEXT_EXT = ('.txt',)
+# 电子书格式：索引只认 txt 的时候，开心书库里 546 本 epub/chm/mobi 在库里
+# 完全看不见（38.9 GB 的分组里一半是它们）。现在统一入库：
+#   epub  —— 可以在线读（serve.py 里拆 zip 取正文）
+#   其余  —— 只入库可下载（mobi/chm 解析依赖外部库，本轮不做，如实标注格式）
+NOVEL_EBOOK_EXT = ('.epub', '.mobi', '.azw3', '.chm', '.pdf', '.doc', '.docx')
+NOVEL_EXT = NOVEL_TEXT_EXT + NOVEL_EBOOK_EXT
+# 可以在阅读器里直接读的格式
+NOVEL_READABLE_EXT = ('.txt', '.epub')
 # 这些目录是爬虫工具和元数据，不是书
 NOVEL_SKIP_DIRS = {'_scripts', '__pycache__', '.git'}
 NOVEL_SKIP_FILES = {'_index.md'}
@@ -356,12 +364,46 @@ def _novel_txts(d):
     return out
 
 
+def _ebook_words(fp, fallback_bytes):
+    """电子书字数估算。
+
+    epub 就是一堆 xhtml 打包，ZipInfo.file_size 是**解压后**大小，
+    不读内容就能把正文体积估出来（比 size/3 靠谱得多——epub 本身是
+    压缩的 zip，拿压缩后字节数除以 3 会小一大截）。
+    其余格式（mobi/chm/pdf）没有通用解压信息，返回 0，前端显示「—」。
+    """
+    import zipfile
+    if fp.lower().endswith('.epub'):
+        try:
+            with zipfile.ZipFile(fp) as z:
+                raw = sum(i.file_size for i in z.infolist()
+                          if i.filename.lower().endswith(('.html', '.xhtml', '.htm')))
+            if raw:
+                return raw // 3
+        except Exception:
+            pass
+    return 0
+
+
+def _book_fmt(files):
+    """一本书的格式：有 txt 就按 txt（可能是一堆章节），否则取第一个电子书后缀。"""
+    for f in files:
+        if f.lower().endswith(NOVEL_TEXT_EXT):
+            return 'txt'
+    for f in files:
+        ext = os.path.splitext(f)[1].lower().lstrip('.')
+        if ext:
+            return ext
+    return 'txt'
+
+
 def _novel_item(rel, name, cat, txts, sizes=None):
-    """一组章节 txt → 一个图库条目。不足 1KB 的视作空书丢弃。
+    """一组章节 txt（或一个电子书文件）→ 一个图库条目。不足 1KB 的视作空书丢弃。
 
     rel 形如 "<根序号>/<相对该根的路径>"，服务端靠它还原绝对路径。
     字数用 size/3 估算（UTF-8 中文约 3 字节一个字），不读全文 ——
     几万本书 17 GB 全读一遍要几分钟，估算误差对「这本书多长」够用了。
+    epub 例外：用解压后体积估，见 _ebook_words。
 
     sizes 与 txts 一一对应时直接用，省掉每个文件一次 getsize ——
     平铺根下有 6 万个 txt，逐个 stat 会让扫描从 2 秒变成两分钟。
@@ -378,12 +420,18 @@ def _novel_item(rel, name, cat, txts, sizes=None):
     total = sum(sizes)
     if total < 1024:
         return None
+    fmt = _book_fmt(txts)
+    if fmt == 'txt':
+        words = total // 3
+    else:
+        words = _ebook_words(txts[0], total)
     return {
         't': name,                 # 书名
         'c': cat,                  # 分类（展示用）
-        's': total, 'w': total // 3,
+        's': total, 'w': words,
+        'f': fmt,                  # 格式：txt / epub / mobi / chm / pdf …
         'p': rel,                  # 服务端据此定位正文
-        'n': len(txts),            # 章节数
+        'n': len(txts),            # 章节数（电子书恒为 1）
     }
 
 
@@ -400,24 +448,36 @@ def _scan_category_dir(cat, dirpath, prefix):
     叫「cool18」的巨大条目。判据是「直接子目录里含 txt 的非章节目录 >= 2」。
     """
     out = []
+    # scandir 而不是 listdir：合并三根之后，成人长篇那 6 万个平铺 txt 会走
+    # 情况 A，DirEntry 自带 size，省掉每个文件一次 getsize —— 后者在 Defender
+    # 实时扫描下会让小说重建从几秒变成两分钟。
     try:
-        entries = sorted(os.listdir(dirpath))
+        with os.scandir(dirpath) as it:
+            entries = sorted(it, key=lambda e: e.name)
     except OSError:
         return out
 
-    for entry in entries:
+    for e in entries:
+        entry = e.name
         if entry in NOVEL_SKIP_FILES:
             continue
-        ep = os.path.join(dirpath, entry)
+        ep = e.path
         rel = '%s/%s/%s' % (prefix, cat, entry)
 
-        # 情况 A：分类下直接是 txt
-        if os.path.isfile(ep) and entry.lower().endswith(NOVEL_EXT):
-            it = _novel_item(rel, os.path.splitext(entry)[0], cat, [ep])
+        # 情况 A：分类下直接是 txt（或单文件电子书 epub/mobi/chm…）
+        try:
+            is_file = e.is_file()
+            asize = e.stat().st_size
+        except OSError:
+            is_file, asize = False, 0
+        if is_file and entry.lower().endswith(NOVEL_EXT):
+            it = _novel_item(rel, os.path.splitext(entry)[0], cat, [ep], [asize])
             if it:
                 out.append(it)
             continue
 
+        if is_file:
+            continue          # 分类根下的非书文件（封面、json 之类）直接跳过
         if not os.path.isdir(ep):
             continue
 

@@ -773,7 +773,7 @@ B3  <分类>/<聚合层>/<书名>/...        爬虫多套了一层
 
 ```bash
 cd D:\work\workbuddy\2026-10-25-19-09-03\app
-%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe serve.py 8777
+C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe serve.py 8777
 # → http://127.0.0.1:8777/
 ```
 

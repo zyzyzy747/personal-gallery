@@ -3,7 +3,7 @@ setlocal
 title Update Gallery (incremental)
 
 set "BASE=D:\work\workbuddy\2026-10-25-19-09-03"
-set "PY=%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+set "PY=C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 set "APP=%BASE%\app"
 
 if not exist "%PY%" (
@@ -18,7 +18,7 @@ echo ============================================================
 echo   Incremental gallery update
 echo ============================================================
 echo.
-echo Scans E:\download\Telegram, adds only what is new:
+echo Scans E:\Download\01-图库, adds only what is new:
 echo   - new images  -> new thumbnails
 echo   - new videos  -> indexed with a video cover
 echo   - already-built items are skipped, so this is fast

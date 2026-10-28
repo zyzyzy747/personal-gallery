@@ -2,7 +2,7 @@
 setlocal
 title Update Novel List
 
-set "PY=%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+set "PY=C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 set "APP=D:\work\workbuddy\2026-10-25-19-09-03\app"
 
 if not exist "%PY%" (
@@ -11,7 +11,7 @@ if not exist "%PY%" (
   exit /b 1
 )
 
-echo Updating novel list from E:\Download\novel_download ...
+echo Updating novel list from E:\Download\02-小说 ...
 echo.
 "%PY%" "%APP%\build.py" --novels
 echo.

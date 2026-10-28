@@ -3,7 +3,7 @@ rem ============================================================
 rem  Photo Gallery - background service launcher
 rem
 rem  Starts BOTH the local server and the Cloudflare tunnel, so
-rem  https://yourname.ccwu.cc keeps working without keeping any
+rem  https://zyzyzy747.ccwu.cc keeps working without keeping any
 rem  window open.
 rem
 rem  Uses ABSOLUTE paths on purpose: this file is meant to be
@@ -16,7 +16,7 @@ rem ============================================================
 setlocal
 
 set "BASE=D:\work\workbuddy\2026-10-25-19-09-03"
-set "PY=%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+set "PY=C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 set "CFG=%USERPROFILE%\.cloudflared\config.yml"
 
 if not exist "%PY%" (

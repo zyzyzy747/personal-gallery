@@ -3,10 +3,10 @@ setlocal
 title Gallery Server - KEEP THIS WINDOW OPEN
 
 set "BASE=D:\work\workbuddy\2026-10-25-19-09-03"
-set "PY=%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+set "PY=C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 set "APP=%BASE%\app"
 set "CF=%BASE%\tools\cloudflared.exe"
-set "CFG=%USERPROFILE%\.cloudflared\config.yml"
+set "CFG=C:\Users\Administrator\.cloudflared\config.yml"
 
 if not exist "%PY%" (
   echo [ERROR] Python not found: %PY%

@@ -31,17 +31,22 @@ python serve.py 8777     :: 起服务，浏览器打开 http://127.0.0.1:8777
 
 | | 规模 |
 |---|---|
-| 图片套图 | **7,807 套 / 188,379 张 / 55 个视频** |
-| 小说 | **70,170 本 / 16.81 GB / 17 个分类** |
-| 索引体积 | 图片 9.74 MB（gzip 1.34 MB）· 小说 10.54 MB（gzip 2.37 MB） |
+| 图片套图 | **7,751 套 / 148,245 张 / 55 个视频** |
+| 小说 | **70,453 本 / 26.6 GB / 17 个分类**（含 272 本 epub、5 本 chm、2 本 pdf、3 本 doc、1 本 mobi） |
+| 索引体积 | 图片 8.5 MB（gzip 1.2 MB）· 小说 12.6 MB（gzip 2.4 MB） |
 | 前端首屏 | 本机实测 0.90 s（含 7 万本小说的解析） |
 
-素材来源两处，互不干扰：
+素材来源（2026-10-29 整理后的布局，见 `docs/05-存储整理-20261029.md`）：
 
 ```
-E:\download\Telegram\         图片 + 部分小说（Telegram 下载的素材包）
-E:\Download\novel_download\   小说（爬虫抓的，cool18 / xbookcn）
+E:\Download\01-图库\<分组>\<套图>\   图片 + 少量视频（原 Telegram 素材）
+E:\Download\02-小说\<分类>\          小说（爬虫书库 + 两个 Telegram 小说包）
+E:\Download\04-工具\                 爬虫脚本与元数据
 ```
+
+顶层的 `E:\Download\Telegram` 与 `E:\Download\novel_download` 现在是指向上面
+两个目录的 **junction（目录联接）**，只为兼容还没重启的旧服务进程和写死旧
+路径的爬虫脚本；服务重启后可以删掉。
 
 ---
 
@@ -307,6 +312,68 @@ type tools\service.log
 ```
 
 如果本地服务正常但手机打不开，问题一定在隧道这一层，不在图库本身。
+
+## 十、2026-10-29 存储整理
+
+`E:\Download` 从「两个大杂烩目录」重排成分类目录，并顺手把图库项目改成读新路径。
+
+| 动作 | 结果 |
+|---|---|
+| 套图内重复图 | 34,113 张 / 4.76 GB，MD5 校验同内容后删除 |
+| 分组根散图重复 | 5,649 张 / 0.84 GB，删除 |
+| 跨组重复套图 | 56 套（0.06 GB）移到 `E:\Download\_quarantine\dup_sets` |
+| 书籍压缩包 | 72 个（19.2 GB）移到 `E:\Download\_quarantine\archives`，未解压 |
+| 顶层布局 | `01-图库` / `02-小说` / `04-工具` / `_quarantine` / `_reports` |
+| 小说来源 | 三个根合并成 `02-小说` 一个根，18 个分类 |
+| 电子书 | 272 epub + 5 chm + 3 doc + 2 pdf + 1 mobi 入索引；epub 可在线阅读 |
+
+代码侧改动：新增 `app/paths.py`（库根唯一声明处，支持
+`GALLERY_MEDIA_ROOT` / `GALLERY_NOVEL_ROOT` 环境变量），`build.py` 读它，
+`serve.py` 增加 `read_epub_text()`，前端加格式徽章与「非 epub/txt 走下载」。
+
+完整审计日志与回滚办法见 `E:\Download\_reports\整理报告-20261029.md`。
+
+## 十一、2026-10-29 接入改动（鉴权 + 自启）
+
+这一节描述**本机实际的部署方式**，比上面的通用说明更新。
+
+### 1. 公网访问：从 URL 令牌换成密码门
+
+原来是 `https://zyzyzy747.ccwu.cc/?t=<令牌>`，令牌明文放在 URL 里——
+会进浏览器历史、截图和分享链接，而且永不过期、不能撤销。
+
+现在在前面加了一个本地鉴权代理（代码在 `life-book-selfhost` 仓库的
+`backend/gallery-auth.js`）：
+
+```
+手机 → Cloudflare 边缘 → 隧道 → 鉴权代理 :8778 → serve.py :8777
+                                        ↑
+                                  没登录就弹密码页
+```
+
+| | 改动前 | 改动后 |
+|---|---|---|
+| 凭据位置 | URL 里的 `?t=` | HttpOnly Cookie |
+| 有效期 | 永久 | 30 天 |
+| 撤销 | 需重启服务 | 轮换密钥即刻全部失效 |
+| 比对方式 | 明文 | scrypt + HMAC 签名 |
+
+⛔ **隧道的 ingress 目标已从 8777 改成 8778**（`~/.cloudflared/config.yml`）。
+直接访问 8777 仍会走 `serve.py` 自带的令牌校验，但那层现在只是本地兜底。
+
+### 2. 开机自启：从登录触发换成系统启动
+
+`startup-gallery.vbs`（登录时跑）**已停用**，因为它在启动时会
+`taskkill /F /IM cloudflared.exe`，和“生活手账”的开机任务抢隧道。
+
+现在由计划任务 `PhotoGallery Server` 在**系统启动**时以 SYSTEM 身份运行
+`life-book-selfhost` 仓库里的 `bin/gallery-boot.ps1`：
+
+1. 先拉起鉴权代理（公网立刻能看到登录页）
+2. 等 90 秒，让生活手账的任务先把隧道拉起来
+3. 端口 8777 没服务就先 `build.py` 再 `serve.py`
+
+⇒ 电脑重启后**不需要登录**，两个站点都会自己恢复。
 
 ## 许可
 

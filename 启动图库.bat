@@ -3,7 +3,7 @@ chcp 65001 >nul 2>&1
 setlocal
 cd /d "%~dp0app"
 
-set "PY=%USERPROFILE%\.workbuddy\binaries\python\versions\3.13.12\python.exe"
+set "PY=C:\Users\Administrator\.workbuddy\binaries\python\versions\3.13.12\python.exe"
 
 if not exist "%PY%" (
   echo.

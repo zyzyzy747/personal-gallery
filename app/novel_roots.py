@@ -4,32 +4,34 @@ build.py（生成索引）和 serve.py（提供正文）都必须知道「小说
 写一份在这里，免得两边各写一套、改一处忘另一处。
 
 索引里的 p 字段格式：**<根序号>/<相对该根的路径>**
-例如 `0/cool18/某本书.txt` 或 `1/20260615_xxx.txt`。
 服务端用根序号还原出绝对路径，这样不同根下的书不会撞名。
 
-⚠️ 下面三条路径是占位值，换成自己机器上的实际目录后再跑 build.py。
-   也可以用环境变量覆盖，免得改代码：
-       GALLERY_CRAWL_ROOT   主书库（子目录 = 分类）
-       GALLERY_EXTRA_ROOT   额外的小说包目录（整个目录 = 一个分类）
+2026-10-29 整理：三个根合并成一个根
+------------------------------------
+原来小说散在三处、两套结构，索引里 p 的根序号 0/1/2 混用：
+
+    0  E:\\Download\\novel_download\\              子目录 = 分类（cool18 / xbookcn / 催眠…）
+    1  E:\\download\\Telegram\\成人长篇小说…\\      整个目录 = 一个分类，6 万个 txt 平铺
+    2  E:\\download\\Telegram\\开心书库…\\          整个目录 = 一个分类
+
+整理后统一放进 `E:\\Download\\02-小说\\`，每个子目录就是一个分类，
+所以现在只有根 0，分类名直接看子目录名。旧索引里的 1/、2/ 前缀
+在首次重建后自然消失（novels.json 每次全量重建，没有稳定 id 的问题）。
+
+目录形态由 build.py 的 _scan_category_dir 处理：
+    02-小说\\<分类>\\<书名>.txt            平铺
+    02-小说\\<分类>\\<书名>\\<书名>.txt     书目录
+    02-小说\\<分类>\\<书名>\\chapters\\*.txt 分章
 """
 
-import os
+import paths
 
-# 根 0：主书库。根下每个子目录是一个分类（按站点名 / 题材分）。
-CRAWL_ROOT = os.environ.get('GALLERY_CRAWL_ROOT') or r'D:\library\novels'
+# 唯一的根：根下每个子目录是一个分类（cool18 / xbookcn / 成人长篇 / 开心书库 …）
+CRAWL_ROOT = paths.NOVEL_ROOT
 
-# 其余根：目录自己就是一个分类。用那种平铺一大堆 txt、没有分类层的小说包时，
-# 直接拿整个目录当一分类。需要几个写几个，顺序就是索引里的根序号。
+# 其余根：目录自己就是一个分类。合并后没有这种根了，保留接口以便以后
+# 再把别处的书挂进来（格式仍是 (路径, 分类名)）。
 EXTRA_ROOTS = []
-_extra = os.environ.get('GALLERY_EXTRA_ROOT')
-if _extra:
-    EXTRA_ROOTS.append((_extra, 'extra'))
-
-# 不想用环境变量就照这个格式直接写死：
-# EXTRA_ROOTS = [
-#     (r'D:\library\novel-pack-a', '书库 A'),
-#     (r'D:\library\novel-pack-b', '书库 B'),
-# ]
 
 
 def roots():
