@@ -1,0 +1,560 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "source": "docs/02-ux-spec.md",
+    "note": "本表是 UX 规范的机器可读单一事实源。数值取自已落地的 index.final.json / design-tokens.css / style.css，与最终实现零漂移。",
+    "dataSource": "app/index.final.json",
+    "measuredAt": "2026-10-25 (final)"
+  },
+  "breakpoints": {
+    "mobile": 767,
+    "tablet": 1279,
+    "desktop": 1280,
+    "wide": 1439,
+    "_note": "mobile/tablet/desktop 用于侧栏行为与工具栏形态；gridColumns 另有一套列数断点，两者独立生效，不要求同点切换。",
+    "sidebarBehavior": {
+      "mobile": "bottom-drawer",
+      "tablet": "icon-rail",
+      "desktop": "persistent"
+    },
+    "gridColumnBreakpoints": {
+      "w1440": 6,
+      "w1100": 5,
+      "w860": 4,
+      "w620": 3,
+      "w400": 2,
+      "w0": 1
+    }
+  },
+  "lightbox": {
+    "states": [
+      "closed",
+      "loading",
+      "loaded",
+      "navigating",
+      "immersive",
+      "error",
+      "fav-on",
+      "fav-off"
+    ],
+    "panelStates": [
+      "panel-open",
+      "panel-closed"
+    ],
+    "keys": {
+      "next": "ArrowRight",
+      "prev": "ArrowLeft",
+      "first": "Home",
+      "last": "End",
+      "close": "Escape",
+      "info": "i",
+      "favorite": "f",
+      "immersive": " ",
+      "zoomIn": "+",
+      "zoomOut": "-",
+      "zoomReset": "0",
+      "grid": "g",
+      "addToSet": "a",
+      "help": "?"
+    },
+    "escapeOrder": [
+      "panel-open",
+      "immersive",
+      "close-lightbox"
+    ],
+    "_escapeNote": "Esc 必须逐级退出：先关元数据面板 → 再退沉浸模式 → 最后才关灯箱。绝不能一次关闭整个灯箱。",
+    "metadataPanel": {
+      "width": 320,
+      "reopenable": true,
+      "reopenTriggers": [
+        "info-button-always-visible",
+        "key-i",
+        "click-meta-icon"
+      ],
+      "toggleKey": "i",
+      "persistAcrossLightboxSessions": true,
+      "_note": "ⓘ 按钮必须常驻底部工具栏，不随面板收起而消失。"
+    },
+    "clickImage": {
+      "closes": false,
+      "behavior": "toggle-immersive",
+      "_note": "误触图片不能立刻关掉灯箱；单击只切换沉浸模式（可逆）。"
+    },
+    "closeOnlyVia": [
+      "Escape",
+      "close-button",
+      "backdrop-intent"
+    ],
+    "closeButtonSize": 44,
+    "prefetchRadius": 2,
+    "prefetchQueueMax": 3,
+    "crossfadeMs": 120,
+    "errorTimeoutMs": 5000,
+    "errorAutoSkip": true,
+    "errorActions": [
+      "retry",
+      "skip"
+    ],
+    "swipe": {
+      "closeDistancePx": 80,
+      "closeVelocityPxPerMs": 0.5,
+      "reversible": true
+    },
+    "focusTrap": true,
+    "focusReturnToTrigger": true,
+    "compare": {
+      "enabled": true,
+      "maxImages": 4,
+      "layout": "2x2",
+      "syncZoom": true,
+      "zoomRangePct": [
+        25,
+        400
+      ]
+    }
+  },
+  "a11y": {
+    "minTouchTarget": 44,
+    "minTouchTargetDesktop": 32,
+    "touchGap": 8,
+    "textOnImageContrast": 4.5,
+    "largeTextContrast": 3.0,
+    "uiComponentContrast": 3.0,
+    "focusRingWidth": 2,
+    "focusRingOffset": 2,
+    "focusRingStyle": "double-ring",
+    "focusRingSelector": ":focus-visible",
+    "altPattern": "{coser} · {作品} {角色} {主题} · 第 {i}/{n} 张",
+    "altMaxLength": 125,
+    "altFallback": "{原始目录名} · 第 {i}/{n} 张",
+    "decorativeAlt": "",
+    "skipLink": true,
+    "liveRegion": {
+      "aria-live": "polite",
+      "purpose": "筛选结果数播报"
+    },
+    "roles": {
+      "grid": "role=grid",
+      "gridcell": "role=gridcell",
+      "lightbox": "role=dialog aria-modal=true",
+      "tabs": "role=tablist / role=tab / role=tabpanel",
+      "progress": "role=progressbar"
+    },
+    "reducedMotion": {
+      "media": "@media (prefers-reduced-motion: reduce)",
+      "globalDuration": "0.01ms",
+      "keepOpacityChanges": true,
+      "disableCardHoverScale": true,
+      "disableSkeletonShimmer": true,
+      "disableFavBounce": true
+    },
+    "scrim": {
+      "minOpacity": 0.6,
+      "gradientEndOpacity": 0.85,
+      "gradientHeightPx": 56,
+      "lightCoverOpacity": 0.78,
+      "lightCoverLumaThreshold": 0.75,
+      "backdropFilterAsSoleMeasure": false,
+      "_note": "已落地实现：--scrim 渐变 0.88/0.72/0.36/0.00，终点 0.88 ≥ 0.85。"
+    }
+  },
+  "perf": {
+    "firstPaintTargetMs": 1200,
+    "thumbsVisibleMs": 2500,
+    "filterResponseMs": 100,
+    "searchResponseMs": 80,
+    "searchDebounceMs": 120,
+    "enterSetMs": 400,
+    "lightboxImageMs": 600,
+    "memoryCapMb": 150,
+    "pageSize": 24,
+    "concurrency": 4,
+    "minFpsDesktop": 55,
+    "minFpsMobile": 45,
+    "indexJsonKb": {
+      "final": 5013
+    },
+    "indexOnlyDirectories": true,
+    "indexFileLayer": false,
+    "_indexNote": "index.final.json 已内嵌 files[] 与 date，首屏零文件系统访问。",
+    "virtualScroll": {
+      "enabled": true,
+      "maxDomNodes": 18,
+      "fixedRowHeight": true,
+      "bufferRows": 2,
+      "_note": "5292 卡片总高约 423000px，虚拟滚动后 DOM 节点恒定 ≤ 18。"
+    },
+    "thumbs": {
+      "preGenerated": true,
+      "count": 5292,
+      "size": "240x308",
+      "format": "jpeg",
+      "totalMb": 67,
+      "path": "app/assets/thumbs/",
+      "field": "thumb",
+      "lazyGenerateNeeded": false,
+      "_note": "封面缩略图已全量生成，前端直接引用 thumb 字段，不做运行时生成。"
+    }
+  },
+  "grid": {
+    "columns": {
+      "mobile": 2,
+      "tablet": 3,
+      "desktop": 5,
+      "wide": 6
+    },
+    "gap": 16,
+    "cardAspect": 0.75,
+    "cardAspectCss": "3 / 4",
+    "containerMax": 1680,
+    "containerPad": {
+      "desktop": 32,
+      "tablet": 20,
+      "mobile": 14
+    },
+    "gridGapX": 24,
+    "gridGapY": 32,
+    "detailAspect": "native",
+    "detailCrop": false,
+    "_note": "cardAspect 0.75 = 3/4。detailCrop=false 因实测 22.8% 为横构图，详情页须按原生比例 height:auto 展示不得裁切。"
+  },
+  "filters": {
+    "topTagCount": 34,
+    "operator": "AND",
+    "operatorScope": {
+      "crossDimension": "AND",
+      "sameDimension": "OR",
+      "_note": "跨维度默认 AND（同维度固定 OR，不受全局开关影响）。"
+    },
+    "operatorToggleable": true,
+    "persist": "url",
+    "urlParams": {
+      "query": "q",
+      "work": "w",
+      "role": "r",
+      "theme": "t",
+      "other": "o",
+      "mode": "mode",
+      "sort": "sort",
+      "lightboxIndex": "i"
+    },
+    "urlMaxTags": 8,
+    "urlOverflowStrategy": "short-hash",
+    "searchFields": [
+      "coser",
+      "tag",
+      "rawDirName"
+    ],
+    "searchWeights": {
+      "coserPrefix": 100,
+      "tagExact": 90,
+      "coserSubstring": 70,
+      "tagPrefix": 60,
+      "rawDirNameSubstring": 30
+    },
+    "searchNormalization": "NFKC + lowercase + 去符号空格（key() 规则）",
+    "persistElsewhere": {
+      "viewDensity": "localStorage",
+      "tagTabDimension": "sessionStorage",
+      "tagTabScroll": "sessionStorage",
+      "favorites": "localStorage",
+      "tagTypeOverrides": "library-overrides.json"
+    },
+    "emptyState": {
+      "keepChipsVisible": true,
+      "showRelaxationSuggestions": true,
+      "suggestionHasCount": true,
+      "showFuzzyCoserSuggestions": true,
+      "fuzzyEditDistance": 2,
+      "maxSuggestions": 5,
+      "clearAllButton": true
+    },
+    "_note": "热门层数量按实测频次 ≥20 得出；搜索框覆盖全部 3613 个标签。"
+  },
+  "recovery": {
+    "metaPanelReopenable": true,
+    "clickImageDoesNotClose": true,
+    "closeOnlyVia": [
+      "Escape",
+      "close-button",
+      "backdrop-intent"
+    ],
+    "loadErrorRecoverable": true,
+    "errorActions": [
+      "retry",
+      "skip"
+    ],
+    "focusReturnsToTrigger": true,
+    "escIsProgressive": true
+  },
+  "data": {
+    "source": "app/index.final.json",
+    "sets": 5292,
+    "totalImages": 72732,
+    "uniqueTags": 3613,
+    "uniqueCosers": 1884,
+    "setsWithDate": 5292,
+    "promoDirs": 9,
+    "partialFiles": 11,
+    "partialFileExtensions": [
+      ".part"
+    ],
+    "imageExtensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp"
+    ],
+    "skipExtensions": [
+      ".part"
+    ],
+    "uniqueWorks": 22,
+    "uniqueRoles": 492,
+    "uniqueThemes": 206,
+    "uniqueOthers": 2999,
+    "lexiconWorksTopLevel": 32,
+    "aliasGroups": 3627,
+    "tagStatsLimit": 600,
+    "coserStatsLimit": 600,
+    "noTagCalibers": {
+      "_note": "「无标签」三种口径，数值差异巨大。界面文案与筛选分组必须明确选用哪一个，不要混用。已按 index.final.json 实际字段 groupby。",
+      "A_noTagAtAll": {
+        "sets": 1435,
+        "pct": 27.1,
+        "definition": "works/roles/themes/others 四字段全空",
+        "useCase": "卡片完全没有副标题 → 原始目录名兜底"
+      },
+      "B_noValidTag": {
+        "sets": 3795,
+        "pct": 71.7,
+        "definition": "works/roles/themes 全空",
+        "useCase": "「未分类」筛选桶总量"
+      },
+      "C_onlyOthers": {
+        "sets": 2360,
+        "pct": 44.6,
+        "definition": "有 others 但无 works/roles/themes",
+        "useCase": "「仅未分类」分组"
+      },
+      "D_hasClassified": {
+        "sets": 1497,
+        "pct": 28.3,
+        "definition": "至少有一个作品/角色/主题标签",
+        "useCase": "可按内容标签检索的套图量"
+      }
+    },
+    "tagFrequencyTiers": {
+      "_note": "实测分布：85.4% 的标签只出现 1–4 次，中间层不做平铺，只能搜索到达。",
+      "hot": {
+        "minFreq": 20,
+        "count": 34,
+        "pct": 0.9,
+        "display": "always-expanded"
+      },
+      "warm": {
+        "minFreq": 5,
+        "maxFreq": 19,
+        "count": 182,
+        "pct": 5.0,
+        "display": "collapsed"
+      },
+      "longTail": {
+        "minFreq": 2,
+        "maxFreq": 4,
+        "count": 3087,
+        "pct": 85.4,
+        "display": "search-only"
+      },
+      "ultraLongTail": {
+        "minFreq": 1,
+        "maxFreq": 1,
+        "count": 310,
+        "pct": 8.6,
+        "display": "search-only"
+      }
+    },
+    "topTags": [
+      "碧蓝航线",
+      "蔚蓝档案",
+      "NIKKE",
+      "兔女郎",
+      "原神",
+      "鸣潮",
+      "女仆",
+      "旗袍",
+      "JK",
+      "FGO",
+      "胜利女神",
+      "泳装",
+      "绝区零",
+      "奶桃桃",
+      "柴郡",
+      "大凤",
+      "明日方舟",
+      "LoLiSAMA",
+      "Natsuko",
+      "自拍"
+    ],
+    "parsedCoserRatePct": 99.98,
+    "specPagesCoveragePct": 79.8,
+    "specSizeCoveragePct": 74.2,
+    "maxImagesPerSet": 877,
+    "imagesPerSet": {
+      "p50": 10,
+      "p90": 19,
+      "p99": 61
+    },
+    "aspectRatio": {
+      "portraitPct": 76.9,
+      "landscapePct": 22.8,
+      "squarePct": 0.3,
+      "median": 0.666
+    },
+    "_indexNote": "index.final.json 由 fix_index.py 持续重建，字段形态在演进；引用时以本表为准。"
+  },
+  "parse": {
+    "regex": {
+      "specBracket": "\\[[^\\[\\]]*\\]",
+      "specPair": "(\\d+\\s*[Pp]\\s*\\d*\\s*[Vv]?)\\s*[-–]?\\s*(\\d+(?:\\.\\d+)?\\s*[MmGg][Bb]?)",
+      "countOnly": "(?<![\\w.])\\d{1,4}\\s*[Pp](?:\\s*\\d{1,2}\\s*[Vv])?(?!\\w)",
+      "sizeOnly": "(?<![\\w.])\\d+(?:\\.\\d+)?\\s*[MmGg][Bb]?(?!\\w)",
+      "time": "(\\d{2,4}\\s*年\\s*\\d{1,2}\\s*月(\\s*计划\\s*[A-Za-z0-9])?|\\d{4}\\s*[.\\-/]\\s*\\d{1,2}(\\s*[.\\-/]\\s*\\d{1,2})?|\\d{1,2}\\.\\d{1,2}\\s*月号|\\d{1,2}\\s*月号|\\d{4}\\s*年(\\s*\\S{1,4}年?)?|计划\\s*[A-Za-z0-9]|Tier|Part\\s*\\d+|第\\s*\\d+\\s*[期回]|(\\d{1,2}\\s*[-–]\\s*\\d{1,2})|(\\d{4}[A-Za-z]{3}(\\d{2})?))",
+      "hashTag": "#([^\\s#\\[\\]]+)",
+      "emoji": "[\\U0001F000-\\U0001FAFF\\U0001F1E6-\\U0001F1FF\\U0001F900-\\U0001F9FF\\u2190-\\u21FF\\u2300-\\u27BF\\u2B00-\\u2BFF\\uFE0F\\u20E3\\u2764\\u2B50]+",
+      "dashChars": "‐‑‒–—―−－ー~～",
+      "datePrefix": "^\\s*\\d{2}\\s*年\\s*\\d{1,2}\\s*月"
+    },
+    "order": [
+      "S0-normalize",
+      "S1-strip-spec",
+      "S2-depth-split",
+      "S3-extract-groups",
+      "S4-resolve-coser",
+      "S5-chunk-tags",
+      "S6-split-bare",
+      "S7-classify",
+      "S8-parse-time"
+    ],
+    "_orderNote": "S1 必须先提取再剥离方括号，否则 pages/size 提取率为 0。S2 必须先深度切分再抽括号，否则括号内 ' - ' 变假分隔符。未闭合括号内容不得回填主串。",
+    "classification": {
+      "scores": {
+        "lexicon": 0.6,
+        "positionWork": 0.25,
+        "positionRole": 0.3,
+        "positionTheme": 0.3,
+        "positionAnchorTie": 0.15,
+        "statWork": 0.15,
+        "statRole": 0.15,
+        "statConcentration": 0.2,
+        "statTheme": 0.2
+      },
+      "thresholds": {
+        "partnersWorkMin": 25,
+        "freqWorkMin": 20,
+        "partnersRoleMax": 12,
+        "freqRoleMax": 60,
+        "concRoleMin": 0.28,
+        "partnersThemeMin": 40,
+        "concThemeMax": 0.15
+      },
+      "confidence": {
+        "hard": 0.6,
+        "showTypeIconMin": 0.65,
+        "bands": {
+          "confident": 0.9,
+          "likely": 0.65,
+          "weak": 0.35,
+          "unclassified": 0.3
+        }
+      },
+      "buckets": [
+        "works",
+        "roles",
+        "themes",
+        "others"
+      ],
+      "othersBucketCollapsed": false,
+      "genericThemeExclusion": {
+        "enabled": true,
+        "size": 45,
+        "note": "泛化主题词必须从作品词表剔除：兔女郎/旗袍/女仆/JK/泳装 等高频且跨 coser 复用的词，若仅凭「频次高+跨 coser」判作品会全部误判。"
+      },
+      "manualOverride": {
+        "enabled": true,
+        "file": "library-overrides.json",
+        "ui": "标签类型就地修正下拉",
+        "reflowsIntoLexicon": true
+      }
+    },
+    "emojiPolicy": {
+      "stripFromTagText": true,
+      "dropIfEmptyAfterStrip": true,
+      "keepTextIfAnyRemains": true,
+      "emojiAsFilterableTag": false,
+      "emojiRender": "decorative-only",
+      "applyToTag": true
+    },
+    "noiseBlacklist": {
+      "size": 21,
+      "items": [
+        "近期精选",
+        "近期相关精选",
+        "近期部分相关流出",
+        "近期相关流出",
+        "部分相关资源",
+        "精选",
+        "套图",
+        "写真",
+        "合集",
+        "资源",
+        "持续更新",
+        "欢迎使用阿福",
+        "月票特典",
+        "月票专属特典",
+        "限时",
+        "置顶",
+        "推荐",
+        "合集推荐",
+        "原创",
+        "近期相关流出",
+        "部分相关流出"
+      ],
+      "quantityPattern": "^\\d+(\\.\\d+)?[PpGgMmKk]?$"
+    },
+    "promoDirPattern": "(点击预览|欢迎使用阿福|近期精选|相关流出|相关精选|部分相关|全网流出|最全入|资源！|持续更新|合集系列|所有资源|免费分享|福利)",
+    "promoHiddenByDefault": true
+  },
+  "ia": {
+    "layers": 3,
+    "topTabs": [
+      "全部套图",
+      "按标签浏览",
+      "最近新增"
+    ],
+    "defaultTab": "全部套图",
+    "routes": {
+      "shell": "/",
+      "tags": "/tags",
+      "recent": "/recent",
+      "set": "/set/:id",
+      "lightbox": "/set/:id?i=12"
+    },
+    "lightboxUsesQueryParam": true,
+    "tagTabJumpsToGallery": true,
+    "tagTabKeepsChipsVisible": true,
+    "virtualScrollRequired": true
+  },
+  "tasks": {
+    "byTag": "按标签找某个角色的全部写真",
+    "byCoser": "浏览某个 coser 的全部套图",
+    "inSet": "在一套图里翻页 / 快速比对",
+    "recent": "只看最近新增"
+  },
+  "keyboard": {
+    "gridNav": "roving-tabindex + 方向键",
+    "gridOpen": "Enter",
+    "gridSelect": "Space",
+    "gridClear": "Escape",
+    "shortcutsDialog": "?"
+  }
+}

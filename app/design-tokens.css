@@ -1,0 +1,204 @@
+/* ============================================================================
+   写真图库 · Design Tokens
+   ----------------------------------------------------------------------------
+   来源：docs/01-visual-direction.md v1.0
+   原则：深浅主题共用同一套语义 token 名，只换值；组件里禁止写死 hex。
+   数值全部来自规范，不做"适度""高级灰"类模糊表述。
+   ========================================================================= */
+
+:root {
+  /* ---------- 2.1 暗色主题（默认） ---------- */
+  /* 背景层 */
+  --bg-void: #08090B;      /* 灯箱底层，唯一比 base 更暗的层 */
+  --bg-base: #0E0F12;      /* 页面底色，非纯黑 */
+  /* 表面层：明度阶梯 L 3.7% → 9.6% → 13.1% → 16.7% */
+  --surface-1: #16171B;    /* 卡片、抽屉、侧栏 */
+  --surface-2: #1E1F25;    /* 悬停态、输入框、下拉 */
+  --surface-3: #26282F;    /* 按下态、选中行 */
+  /* 边框层：只有三档，不允许第四档 */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  /* 强调色：唯一冷青蓝 H188.7 S49.8% L53.9% */
+  --accent: #4FB3C4;
+  --accent-hover: #6FC7D6;
+  --accent-active: #3E96A6;
+  --accent-ink: #0B0C0E;
+  --accent-wash: rgba(79, 179, 196, 0.12);
+  --accent-wash-strong: rgba(79, 179, 196, 0.10);
+  --accent-border: rgba(79, 179, 196, 0.45);
+  /* 次强调：档案章色，仅用于数量/体积/日期，绝不作按钮底色 */
+  --amber: #D9A441;
+  --amber-wash: rgba(217, 164, 65, 0.12);
+  /* 文字层 */
+  --text-primary: #F2F3F5;
+  --text-secondary: #C9CCD2;
+  --text-tertiary: #8E9299;
+  --text-disabled: #63676E;
+  /* 功能色 */
+  --success: #5FB07E;
+  --warning: #D9A441;
+  --danger: #D96459;
+  --info: #6B93C7;
+  /* 中性标签片底/边（§6.2） */
+  --chip-neutral-bg: rgba(255, 255, 255, 0.055);
+  --chip-neutral-border: rgba(255, 255, 255, 0.07);
+  /* 图片内描边（§7.2） */
+  --img-inset: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  /* 图片上文字遮罩（§5.4，唯一允许的渐变之一） */
+  --scrim: linear-gradient(to top,
+      rgba(8, 9, 11, 0.88) 0%,
+      rgba(8, 9, 11, 0.72) 18%,
+      rgba(8, 9, 11, 0.36) 42%,
+      rgba(8, 9, 11, 0.00) 68%);
+  /* 灯箱渐晕（§5.4） */
+  --lb-vignette: radial-gradient(ellipse at center,
+      rgba(8, 9, 11, 0) 40%, rgba(8, 9, 11, 0.55) 100%);
+  /* 骨架 shimmer（§7.4） */
+  --shimmer: linear-gradient(100deg,
+      rgba(255, 255, 255, 0.04) 30%,
+      rgba(255, 255, 255, 0.09) 50%,
+      rgba(255, 255, 255, 0.04) 70%);
+  /* 交互态叠层 */
+  --hover-wash: rgba(255, 255, 255, 0.045);
+  --hover-wash-strong: rgba(255, 255, 255, 0.06);
+  --press-wash: rgba(255, 255, 255, 0.10);
+  /* 焦点环：双层环（§5.5） */
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+  --focus-outline: 2px solid var(--accent-hover);
+  --focus-offset: 2px;
+
+  /* ---------- 4.1 字体栈 ---------- */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+               "Source Han Sans SC", "Hiragino Sans GB", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Mono", "Menlo", "Consolas",
+               "PingFang SC", "Microsoft YaHei", monospace;
+
+  /* ---------- 4.2 字号阶梯 ---------- */
+  --fs-display: 22px;   --lh-display: 30px;   --fw-display: 600;   --ls-display: -0.01em;
+  --fs-h2: 15px;        --lh-h2: 22px;        --fw-h2: 600;
+  --fs-card-title: 14px;--lh-card-title: 20px;--fw-card-title: 600;
+  --fs-body: 13px;      --lh-body: 22px;      --fw-body: 400;
+  --fs-label: 12px;     --lh-label: 18px;     --fw-label: 500;     --ls-label: 0.02em;
+  --fs-meta: 11.5px;    --lh-meta: 16px;      --fw-meta: 500;
+  --fs-caption: 12px;   --lh-caption: 18px;   --fw-caption: 400;
+  --fs-micro: 11px;     --lh-micro: 14px;     --fw-micro: 600;     --ls-micro: 0.08em;
+
+  /* ---------- 5.3 圆角一致性 ---------- */
+  --radius-media: 8px;   /* 图片本体 / 缩略图：唯一的媒体圆角 */
+  --radius-card: 8px;    /* 裁切图片的父容器：必须 == 图片圆角 */
+  --radius-control: 6px; /* 按钮 / 输入框 / 分面行 */
+  --radius-pill: 999px;  /* 可点筛选胶囊 */
+  --radius-chip: 4px;    /* 静态标签片 */
+  --radius-stamp: 3px;   /* 档案章 */
+  --radius-lb-image: 0;  /* 灯箱内图 */
+  --radius-avatar: 50%;  /* 头像 */
+  --radius-keycap: 4px;  /* 快捷键帽 */
+
+  /* ---------- 5.1 网格几何 ---------- */
+  --container-max: 1680px;
+  --pad-x: 32px;
+  --pad-x-md: 20px;
+  --pad-x-sm: 14px;
+  --grid-gap-x: 24px;
+  --grid-gap-y: 32px;    /* 纵向 > 横向，视觉上把卡与其下索引卡绑成一组 */
+  --card-aspect: 0.75;   /* 3/4 */
+  --card-info-h: 88px;   /* 索引卡区固定高（虚拟滚动需要固定行高）
+                             = padding 10*2 + row1 20 + gap 6 + row2 16 + gap 6 + row3 20
+                             少 1px 都会裁掉标签行（实测 76px 时 row3 只剩 8/20px 可见） */
+
+  /* ---------- 6 组件尺寸 ---------- */
+  --topbar-h: 56px;
+  --topbar-h-compact: 48px;
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 56px;
+  --drawer-h: 80vh;
+  --btn-h: 34px;
+  --icon-btn: 34px;
+  --search-h: 36px;
+  --pill-h: 24px;
+  --coser-h: 20px;
+  --tag-h: 20px;
+  --stamp-h: 18px;
+  --lb-panel-w: 320px;
+  --lb-strip-h: 72px;
+  --lb-strip-thumb-w: 48px;
+  --lb-strip-thumb-h: 64px;
+  --tap-min: 32px;       /* 桌面最小点击区 */
+  --tap-min-mobile: 44px;/* 移动端最小点击区 */
+
+  /* ---------- 7.1 阴影层级 ---------- */
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.40);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.52), 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-3: 0 -12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-3-desktop: -12px 0 40px rgba(0, 0, 0, 0.55);
+  --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.60);
+
+  /* ---------- 7.6 动效 ---------- */
+  --dur-control: 120ms;
+  --dur-scale: 240ms;
+  --dur-scrim: 140ms;
+  --dur-drawer: 220ms;
+  --dur-shimmer: 1600ms;
+  --ease-out: ease-out;
+  --ease-photo: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ============================================================================
+   2.2 / 8 浅色主题：只换 token 值，布局/圆角/间距零变化
+   ========================================================================= */
+[data-theme="light"] {
+  --bg-void: #E8EAEE;
+  --bg-base: #F2F3F5;
+  --surface-1: #FFFFFF;
+  --surface-2: #F7F8F9;
+  --surface-3: #EBEDF0;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.20);
+  /* 暗色 #4FB3C4 在白底上 CR 仅 2.21，不可用 → 压暗同色相 */
+  --accent: #1F7A8A;
+  --accent-hover: #0E6B7A;
+  --accent-active: #195F6D;
+  --accent-ink: #FFFFFF;
+  --accent-wash: rgba(31, 122, 138, 0.12);
+  --accent-wash-strong: rgba(31, 122, 138, 0.10);
+  --accent-border: rgba(31, 122, 138, 0.45);
+  --amber: #8A6114;
+  --amber-wash: rgba(138, 97, 20, 0.12);
+  --text-primary: #14161A;
+  --text-secondary: #4A4E56;
+  --text-tertiary: #6B7079;
+  --text-disabled: #9AA0A8;
+  --success: #2F7D51;
+  --warning: #8A6114;
+  --danger: #B3382E;
+  --info: #3C5F92;
+  --chip-neutral-bg: rgba(0, 0, 0, 0.05);
+  --chip-neutral-border: rgba(0, 0, 0, 0.08);
+  --img-inset: inset 0 0 0 1px rgba(0, 0, 0, 0.10);
+  /* 浅底上遮罩终点压深，才能保证白字 ≥ 4.5:1 */
+  --scrim: linear-gradient(to top,
+      rgba(8, 9, 11, 0.86) 0%,
+      rgba(8, 9, 11, 0.68) 18%,
+      rgba(8, 9, 11, 0.34) 42%,
+      rgba(8, 9, 11, 0.00) 68%);
+  --lb-vignette: radial-gradient(ellipse at center,
+      rgba(20, 22, 26, 0) 40%, rgba(20, 22, 26, 0.42) 100%);
+  --shimmer: linear-gradient(100deg,
+      rgba(0, 0, 0, 0.035) 30%,
+      rgba(0, 0, 0, 0.075) 50%,
+      rgba(0, 0, 0, 0.035) 70%);
+  --hover-wash: rgba(0, 0, 0, 0.04);
+  --hover-wash-strong: rgba(0, 0, 0, 0.06);
+  --press-wash: rgba(0, 0, 0, 0.09);
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+  --focus-outline: 2px solid var(--accent);
+  /* 浅底上分层靠边框 + 阴影 */
+  --shadow-1: 0 1px 2px rgba(20, 25, 35, 0.06);
+  --shadow-2: 0 8px 24px rgba(20, 25, 35, 0.10);
+  --shadow-3: 0 -12px 40px rgba(20, 25, 35, 0.14);
+  --shadow-3-desktop: -12px 0 40px rgba(20, 25, 35, 0.14);
+  --shadow-4: 0 16px 48px rgba(20, 25, 35, 0.14);
+}

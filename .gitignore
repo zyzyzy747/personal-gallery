@@ -1,0 +1,27 @@
+# ---- 本地生成物（体积大，不入库）----
+app/index.final.json
+app/index.final.json.gz
+app/assets/
+app/node_modules/
+app/__pycache__/
+__pycache__/
+
+# ---- 私有 ----
+.gallery-token.txt
+.gallery-token.txt.bak
+
+# ---- 日志 ----
+last-build.log
+last-build.err
+last-serve.log
+last-serve.err
+last-serve-manual.log
+gallery-startup.log
+cloudflared.out
+cloudflared.err
+tools/
+
+# ---- 截图与临时文件（截图里含素材内容）----
+app/shot-*.png
+_analysis/
+*.bak

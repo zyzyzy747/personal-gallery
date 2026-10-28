@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>写真图库 · 暗房档案柜</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="style.css?v=68599c4dd6f6">
+<link rel="preload" as="fetch" href="index.final.json" crossorigin>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234FB3C4' stroke-width='1.75'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">跳到主要内容</a>
+
+<!-- ==================== L0 全局外壳 ==================== -->
+<div class="app" id="app" data-sidebar="expanded" data-drawer="0" data-density="comfortable">
+
+  <div class="sidebar-scrim" id="sidebar-scrim"></div>
+
+  <!-- ---------- 侧栏 ---------- -->
+  <aside class="sidebar" id="sidebar" aria-label="筛选与导航">
+    <div class="sidebar-body" id="sidebar-body">
+
+      <!-- 敏感内容模糊开关（§7.8），独立于普通分面 -->
+      <button class="sensitive-switch" id="nsfw-switch" type="button" aria-pressed="true">
+        <span class="sensitive-dot" aria-hidden="true"></span>
+        <span>模糊敏感内容</span>
+        <span class="switch-state" id="nsfw-state">开</span>
+      </button>
+
+      <!-- 主导航 -->
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-item" type="button" data-nav="grid" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span class="nav-label">全部套图</span>
+          <span class="nav-count" id="nav-count-all">—</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="tags">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span class="nav-label">按标签浏览</span>
+          <span class="nav-count" id="nav-count-tags">—</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="manga" id="nav-manga" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v16H4zM13 4h7v16h-7z"/><path d="M6.5 8h2M6.5 11h2M15.5 8h2M15.5 11h2"/></svg>
+          <span class="nav-label">漫画</span>
+          <span class="nav-count" id="nav-count-manga">—</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="novel" id="nav-novel" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 6h8M8 10h8M8 14h5"/></svg>
+          <span class="nav-label">小说</span>
+          <span class="nav-count" id="nav-count-novel">—</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="recent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span class="nav-label">最近新增</span>
+          <span class="nav-count" id="nav-count-recent">—</span>
+        </button>
+      </nav>
+
+      <!-- 快速筛选 -->
+      <section class="facet-group" id="facet-coser">
+        <h2 class="facet-title">人物</h2>
+        <div class="mini-search">
+          <input type="search" id="coser-filter-input" placeholder="筛选 coser…" aria-label="筛选 coser 列表" autocomplete="off">
+        </div>
+        <div id="coser-list" role="group" aria-label="coser 列表"></div>
+      </section>
+
+      <!-- 标签全局搜索：覆盖全部 3659 个标签（含 2–4 次与 1 次的长尾） -->
+      <section class="facet-group" id="facet-tagsearch">
+        <h2 class="facet-title">标签搜索</h2>
+        <div class="mini-search">
+          <input type="search" id="tag-search-input" placeholder="搜索全部标签…" aria-label="搜索全部标签" autocomplete="off">
+        </div>
+        <div id="tag-search-results" role="group" aria-label="标签搜索结果"></div>
+      </section>
+
+      <div class="mode-switch" role="group" aria-label="跨维度筛选逻辑">
+        <span>跨维度</span>
+        <span class="seg">
+          <button type="button" id="mode-and" aria-pressed="true">同时满足 AND</button>
+          <button type="button" id="mode-or" aria-pressed="false">任一满足 OR</button>
+        </span>
+      </div>
+
+      <section class="facet-group" id="facet-works">
+        <h2 class="facet-title"><span>作品</span><span class="facet-count" data-facet-count="works"></span></h2>
+        <div class="tagcloud" id="cloud-works" role="group" aria-label="作品标签"></div>
+      </section>
+
+      <section class="facet-group" id="facet-roles">
+        <h2 class="facet-title"><span>角色</span><span class="facet-count" data-facet-count="roles"></span></h2>
+        <div class="tagcloud" id="cloud-roles" role="group" aria-label="角色标签"></div>
+      </section>
+
+      <section class="facet-group" id="facet-themes">
+        <h2 class="facet-title"><span>主题</span><span class="facet-count" data-facet-count="themes"></span></h2>
+        <div class="tagcloud" id="cloud-themes" role="group" aria-label="主题标签"></div>
+      </section>
+
+      <!-- 未分类桶：默认展开（UX 规范 §3.8，覆盖 2376 套图 = 44.9%） -->
+      <section class="facet-group" id="facet-others">
+        <h2 class="facet-title">
+          <span>未分类</span>
+          <span class="facet-count" data-facet-count="others"></span>
+        </h2>
+        <div class="tagcloud" id="cloud-others" role="group" aria-label="未分类标签"></div>
+      </section>
+    </div>
+
+    <!-- 已应用筛选 -->
+    <div class="sidebar-foot">
+      <div class="applied">
+        <div class="applied-head">
+          <span>已应用筛选</span>
+          <span class="applied-n" id="applied-n"></span>
+          <button type="button" id="clear-all" class="btn btn-ghost" style="margin-left:auto;height:22px;padding:0 8px;font-size:var(--fs-caption)">清空</button>
+        </div>
+        <div class="applied-list" id="applied-list"></div>
+        <p class="applied-empty" id="applied-empty">尚未应用任何筛选</p>
+        <button class="override-export" id="override-export" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span>导出标签类型修正</span>
+          <span class="ov-n" id="override-count">0</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ---------- 主区 ---------- -->
+  <div class="main" id="main-content">
+
+    <!-- 顶栏 -->
+    <header class="topbar" id="topbar">
+      <button class="icon-btn mobile-only" id="sidebar-toggle" type="button" aria-label="打开筛选侧栏" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.2M12 17.8V21M3 12h3.2M17.8 12H21"/></svg>
+        <span class="brand-text">写真图库<span class="brand-sub" id="brand-sub">暗房档案柜</span></span>
+      </div>
+
+      <div class="search" id="search" data-has-value="0">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="search-input" placeholder="搜索 coser / 角色 / 标签…" aria-label="搜索 coser、角色、标签或目录名" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list">
+          <button class="search-clear" id="search-clear" type="button" aria-label="清除搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+          <span class="keycap" aria-hidden="true">/</span>
+        </div>
+        <div class="suggest" id="suggest" role="listbox" aria-label="搜索建议"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="seg desktop-only" role="group" aria-label="网格密度">
+          <button class="icon-btn" type="button" id="density-comfortable" aria-pressed="true" aria-label="舒适密度" title="舒适密度">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+          </button>
+          <button class="icon-btn" type="button" id="density-compact" aria-pressed="false" aria-label="紧凑密度" title="紧凑密度">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="9.5" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><rect x="16" y="9.5" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><rect x="9.5" y="16" width="5" height="5" rx="1"/><rect x="16" y="16" width="5" height="5" rx="1"/></svg>
+          </button>
+        </div>
+
+        <label class="sr-only" for="sort-select">排序方式</label>
+        <select class="select" id="sort-select">
+          <option value="newest">最近新增</option>
+          <option value="shots-desc">拍摄日期 ↓</option>
+          <option value="count-desc">图片数 ↓</option>
+          <option value="coser-asc">coser A-Z</option>
+          <option value="size-desc">体积 ↓</option>
+        </select>
+
+        <button class="icon-btn" type="button" id="theme-toggle" aria-label="切换深浅主题" title="切换深浅主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" id="theme-icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"/></svg>
+        </button>
+
+        <button class="icon-btn desktop-only" type="button" id="sidebar-collapse" aria-label="折叠侧栏" title="折叠侧栏">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ---------- L1-A 全部套图 ---------- -->
+    <section class="view" id="view-grid" data-active="1" aria-label="全部套图">
+      <div class="toolbar">
+        <h1>全部套图</h1>
+        <span class="count" id="grid-count" role="status" aria-live="polite">—</span>
+        <div class="toolbar-right">
+          <span class="count" id="grid-hint"></span>
+        </div>
+      </div>
+      <div class="grid-scroll" id="grid-scroll" tabindex="-1">
+        <div class="grid-inner">
+          <div class="grid-spacer" id="grid-spacer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- L1-B 按标签浏览 ---------- -->
+    <section class="view" id="view-tags" aria-label="按标签浏览">
+      <div class="toolbar">
+        <h1>按标签浏览</h1>
+        <span class="count" id="tags-count"></span>
+      </div>
+      <div class="grid-scroll">
+        <div class="tag-page">
+          <div class="dims" id="tag-dims" role="group" aria-label="标签维度"></div>
+          <div class="tag-list" id="tag-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- L1-C 最近新增 ---------- -->
+    <section class="view" id="view-recent" aria-label="最近新增">
+      <div class="toolbar">
+        <h1>最近新增</h1>
+        <span class="count" id="recent-count"></span>
+      </div>
+      <div class="grid-scroll">
+        <div class="recent-page" id="recent-page"></div>
+      </div>
+    </section>
+
+    <!-- ---------- 小说阅读器 ---------- -->
+    <section class="view" id="view-reader" aria-label="阅读">
+      <div class="reader-bar">
+        <button class="icon-btn" type="button" id="reader-back" aria-label="返回书库">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="reader-title" id="reader-title">—</span>
+        <span class="reader-spacer"></span>
+        <button class="icon-btn" type="button" id="reader-font-dec" aria-label="缩小字号">A-</button>
+        <button class="icon-btn" type="button" id="reader-font-inc" aria-label="放大字号">A+</button>
+        <a class="icon-btn" id="reader-download" aria-label="下载原文" title="下载原文" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M4 21h16"/></svg>
+        </a>
+      </div>
+      <div class="reader-scroll" id="reader-scroll">
+        <article class="reader-body" id="reader-body"></article>
+      </div>
+      <div class="reader-foot">
+        <button class="btn btn-secondary" type="button" id="reader-prev">上一页</button>
+        <span class="reader-page" id="reader-page">—</span>
+        <button class="btn btn-secondary" type="button" id="reader-next">下一页</button>
+      </div>
+    </section>
+
+    <!-- ---------- L1-N 小说库 ---------- -->
+    <section class="view" id="view-novel" aria-label="小说">
+      <div class="toolbar">
+        <h1>小说</h1>
+        <span class="count" id="novel-count" role="status" aria-live="polite">—</span>
+        <span class="toolbar-spacer"></span>
+        <input type="search" id="novel-search" class="novel-search" placeholder="搜书名…" aria-label="搜索书名" autocomplete="off">
+        <select id="novel-cat" class="novel-cat" aria-label="按分类筛选"></select>
+      </div>
+      <div class="grid-scroll">
+        <div class="novel-list" id="novel-list"></div>
+      </div>
+    </section>
+
+    <!-- ---------- L2 单套图页 ---------- -->
+    <section class="view" id="view-set" aria-label="套图详情">
+      <div class="set-header" id="set-header"></div>
+      <div class="grid-scroll">
+        <div class="set-grid" id="set-grid"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== L3 灯箱（模态叠层） ==================== -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片查看器" data-open="0" data-immersive="0">
+  <div class="lb-bg" id="lb-bg"></div>
+
+  <div class="lb-top" id="lb-top">
+    <button class="icon-btn" type="button" id="lb-back" aria-label="返回套图列表">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <span class="lb-setname" id="lb-setname">—</span>
+    <div class="lb-top-right">
+      <button class="icon-btn" type="button" id="lb-fav" aria-pressed="false" aria-label="收藏当前图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+      </button>
+      <button class="icon-btn" type="button" id="lb-copy" aria-label="复制路径">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="icon-btn" type="button" id="lb-help" aria-label="快捷键说明">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      </button>
+      <button class="icon-btn lb-close" type="button" id="lb-close" aria-label="关闭灯箱">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="lb-stage" id="lb-stage">
+    <div class="lb-zone" data-side="prev" id="lb-prev" role="button" tabindex="0" aria-label="上一张">
+      <button type="button" tabindex="-1" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div id="lb-figure" style="display:contents">
+      <img class="lb-main" id="lb-main" alt="" decoding="async">
+    </div>
+
+    <div class="lb-loader" id="lb-loader" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuetext="载入中">
+      <div class="lb-spinner" aria-hidden="true"></div>
+      <span class="lb-progress" id="lb-progress">载入中</span>
+    </div>
+
+    <div class="lb-error" id="lb-error" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span>这张加载失败</span>
+      <div class="lb-error-actions">
+        <button class="btn btn-secondary" type="button" id="lb-retry">重试</button>
+        <button class="btn btn-secondary" type="button" id="lb-skip">跳过</button>
+      </div>
+      <span class="lb-error-note" id="lb-error-note"></span>
+    </div>
+
+    <div class="lb-zone" data-side="next" id="lb-next" role="button" tabindex="0" aria-label="下一张">
+      <button type="button" tabindex="-1" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 底部工具栏：ⓘ 常驻（恢复路径 ①） -->
+  <div class="lb-bottom" id="lb-bottom">
+    <span class="lb-counter" id="lb-counter">0 / 0</span>
+    <div class="lb-strip" id="lb-strip" role="tablist" aria-label="套图内图片胶片条"></div>
+    <button class="icon-btn" type="button" id="lb-info" aria-pressed="true" aria-label="切换元数据面板" title="元数据面板 (I)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+    </button>
+    <button class="icon-btn" type="button" id="lb-grid" aria-label="返回套图网格并定位到当前图" title="返回网格 (G)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </button>
+  </div>
+
+  <!-- 元数据面板（收起后 ⓘ 仍在工具栏，可随时 reopen） -->
+  <aside class="lb-panel" id="lb-panel" data-open="1" aria-label="元数据面板">
+    <h3 id="lb-panel-title">—</h3>
+    <div id="lb-panel-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"></div>
+
+    <section class="panel-sec">
+      <div class="panel-sec-title">原始目录名</div>
+      <div class="path-row">
+        <code id="lb-panel-raw">—</code>
+        <button class="icon-btn" type="button" id="lb-copy-raw" aria-label="复制原始目录名" title="复制原始目录名">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel-sec">
+      <div class="panel-sec-title">档案</div>
+      <dl style="margin:0">
+        <div class="kv"><dt>图片数</dt><dd id="lb-meta-count">—</dd></div>
+        <div class="kv"><dt>规格</dt><dd id="lb-meta-pages">—</dd></div>
+        <div class="kv"><dt>体积</dt><dd id="lb-meta-size">—</dd></div>
+        <div class="kv"><dt>拍摄日期</dt><dd id="lb-meta-shot">—</dd></div>
+        <div class="kv"><dt>当前</dt><dd id="lb-meta-file">—</dd></div>
+        <div class="kv"><dt>源路径</dt><dd id="lb-meta-path">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel-sec" id="lb-same-coser-sec" hidden>
+      <div class="panel-sec-title" id="lb-same-coser-title">同 coser 的其他套图</div>
+      <div class="same-coser" id="lb-same-coser"></div>
+    </section>
+  </aside>
+
+  <!-- 快捷键面板 -->
+  <div id="lb-help-overlay" hidden style="position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(8,9,11,.6)">
+    <div class="shortcuts" role="dialog" aria-modal="true" aria-label="快捷键">
+      <h3>快捷键</h3>
+      <dl>
+        <dt><kbd>←</kbd><kbd>→</kbd></dt><dd>上一张 / 下一张</dd>
+        <dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>第一张 / 最后一张</dd>
+        <dt><kbd>Esc</kbd></dt><dd>逐级退出：面板 → 沉浸 → 关闭</dd>
+        <dt><kbd>I</kbd></dt><dd>元数据面板展开/收起</dd>
+        <dt><kbd>F</kbd></dt><dd>收藏当前图</dd>
+        <dt><kbd>Space</kbd></dt><dd>沉浸模式</dd>
+        <dt><kbd>G</kbd></dt><dd>回到套图网格并定位</dd>
+        <dt><kbd>?</kbd></dt><dd>本面板</dd>
+      </dl>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end">
+        <button class="btn btn-secondary" type="button" id="lb-help-close">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<template id="tpl-card">
+  <article class="card" tabindex="-1">
+    <div class="card-cover">
+      <img class="lqip" alt="" aria-hidden="true" decoding="async">
+      <img class="thumb" alt="" loading="lazy" decoding="async" width="240" height="308">
+      <div class="card-scrim"></div>
+      <div class="sensitive-veil" hidden></div>
+      <span class="sensitive-hint" hidden>点击显示</span>
+      <div class="card-quick">
+        <button type="button" data-act="fav" aria-pressed="false" aria-label="收藏这套图">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="card-row1">
+        <span class="coser-pill"></span>
+        <span class="card-title"></span>
+      </div>
+      <div class="card-row2"></div>
+      <div class="card-row3"></div>
+    </div>
+  </article>
+</template>
+
+<script src="app.js?v=68599c4dd6f6"></script>
+</body>
+</html>
