@@ -307,3 +307,7 @@ type tools\service.log
 ```
 
 如果本地服务正常但手机打不开，问题一定在隧道这一层，不在图库本身。
+
+## 许可
+
+MIT，见 [LICENSE](LICENSE)。
